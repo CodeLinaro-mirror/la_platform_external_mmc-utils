@@ -550,6 +550,7 @@ int do_writeprotect_user_set(int nargs, char **argv)
 			exit(1);
 		}
 	}
+	close(fd);
 	return ret;
 
 usage:
@@ -1277,6 +1278,7 @@ int do_create_gp_partition(int nargs, char **argv)
 	if (set_partitioning_setting_completed(dry_run, device, fd))
 		exit(1);
 
+	close(fd);
 	return 0;
 }
 
@@ -1424,6 +1426,7 @@ int do_enh_area_set(int nargs, char **argv)
 	if (set_partitioning_setting_completed(dry_run, device, fd))
 		exit(1);
 
+	close(fd);
 	return 0;
 }
 
@@ -1491,6 +1494,7 @@ int do_write_reliability_set(int nargs, char **argv)
 	if (set_partitioning_setting_completed(dry_run, device, fd))
 		exit(1);
 
+	close(fd);
 	return 0;
 }
 
@@ -2005,6 +2009,7 @@ int do_read_extcsd(int nargs, char **argv)
 		       "Please check sysfs node '/sys/devices/.../mmc_host/mmcX/mmcX:XXXX/cmdq_en'\n");
 	}
 out_free:
+	close(fd);
 	return ret;
 }
 
@@ -2037,6 +2042,7 @@ int do_write_extcsd(int nargs, char **argv)
 		exit(1);
 	}
 
+	close(fd);
 	return ret;
 }
 
