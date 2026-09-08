@@ -1007,6 +1007,131 @@ static const char *extcsd_rev_to_string(__u8 rev)
 	}
 }
 
+static const char *pre_eol_info_to_string(__u8 val)
+{
+	switch (val) {
+	case 0x00:
+		return "Not defined";
+	case 0x01:
+		return "Normal";
+	case 0x02:
+		return "Warning: Consumed 80% of reserved block";
+	case 0x03:
+		return "Urgent";
+	default:
+		return "Reserved";
+	}
+}
+
+static const char *life_time_est_to_string(__u8 val)
+{
+	static const char * const strs[] = {
+		"Not defined",                                     /* 0x00 */
+		"0%-10% of device life time used",                 /* 0x01 */
+		"10%-20% of device life time used",                /* 0x02 */
+		"20%-30% of device life time used",                /* 0x03 */
+		"30%-40% of device life time used",                /* 0x04 */
+		"40%-50% of device life time used",                /* 0x05 */
+		"50%-60% of device life time used",                /* 0x06 */
+		"60%-70% of device life time used",                /* 0x07 */
+		"70%-80% of device life time used",                /* 0x08 */
+		"80%-90% of device life time used",                /* 0x09 */
+		"90%-100% of device life time used",               /* 0x0A */
+		"Exceeded the maximum estimated device life time", /* 0x0B */
+	};
+
+	if (val > 0x0B)
+		return "Reserved";
+
+	return strs[val];
+}
+
+static const char *bkops_status_to_string(__u8 val)
+{
+	switch (val) {
+	case 0x00:
+		return "No background operation required";
+	case 0x01:
+		return "Level 1: background operation required (non-urgent)";
+	case 0x02:
+		return "Level 2: background operation required (performance impacted)";
+	case 0x03:
+		return "Level 3: background operation required (urgent)";
+	default:
+		return "Reserved";
+	}
+}
+
+/*
+ * Print a health summary of the device. The background operations
+ * status is available since eMMC 4.41, the Pre EOL info and the device
+ * life time estimates since eMMC 5.0. SD cards do not report health
+ * data.
+ */
+int do_health(int nargs, char **argv)
+{
+	__u8 ext_csd[512], ext_csd_rev, pre_eol, life_typ_a, life_typ_b, bkops;
+	int fd, ret;
+	char *device;
+	const char *str;
+
+	if (nargs != 2) {
+		print_usage(do_health);
+		exit(1);
+	}
+
+	device = argv[1];
+
+	fd = open(device, O_RDWR);
+	if (fd < 0) {
+		perror("open");
+		exit(1);
+	}
+
+	ret = read_extcsd(fd, ext_csd);
+	if (ret) {
+		fprintf(stderr, "Could not read EXT_CSD from %s, "
+				"not an eMMC device?\n", device);
+		close(fd);
+		exit(1);
+	}
+
+	ext_csd_rev = ext_csd[EXT_CSD_REV];
+
+	printf("=============================================\n");
+	printf("  eMMC Health Report: %s\n", device);
+	printf("=============================================\n");
+	str = extcsd_rev_to_string(ext_csd_rev);
+	printf("Extended CSD rev: 1.%d (MMC %s)\n", ext_csd_rev,
+	       str ? str : "unknown");
+
+	/* The background operations status is available since eMMC 4.41 */
+	if (ext_csd_rev >= EXT_CSD_REV_V4_4_1) {
+		bkops = ext_csd[EXT_CSD_BKOPS_STATUS] & 0x3;
+		printf("BKOPS status:     0x%02x [%s]\n", bkops,
+		       bkops_status_to_string(bkops));
+		if (bkops == 0x03)
+			printf("Note: urgent background operation is pending, "
+			       "do not power off the device right now\n");
+	}
+
+	/* The Pre EOL info and life time estimates are available since eMMC 5.0 */
+	if (ext_csd_rev >= EXT_CSD_REV_V5_0) {
+		pre_eol = ext_csd[EXT_CSD_PRE_EOL_INFO];
+		life_typ_a = ext_csd[EXT_CSD_DEVICE_LIFE_TIME_EST_TYP_A];
+		life_typ_b = ext_csd[EXT_CSD_DEVICE_LIFE_TIME_EST_TYP_B];
+		printf("Pre EOL info:     0x%02x [%s]\n", pre_eol,
+		       pre_eol_info_to_string(pre_eol));
+		printf("Life time type A: 0x%02x [%s]\n", life_typ_a,
+		       life_time_est_to_string(life_typ_a));
+		printf("Life time type B: 0x%02x [%s]\n", life_typ_b,
+		       life_time_est_to_string(life_typ_b));
+	}
+
+	close(fd);
+	return 0;
+}
+
 static unsigned int get_sector_count(__u8 *ext_csd)
 {
 	return (ext_csd[EXT_CSD_SEC_COUNT_3] << 24) |

@@ -53,6 +53,11 @@ NOTE!  This is a one-time programmable (unreversible) change.
 .BR "status get <device>"
 Print the response to STATUS_SEND (CMD13).
 .TP
+.BR "health <device>"
+Print a health summary of the eMMC <device>: the background operations
+status (eMMC >= 4.41), Pre EOL info and device life time estimates
+(eMMC >= 5.0). eMMC only; SD cards do not report health data.
+.TP
 .BR "bootpart enable <boot_partition> <send_ack> <device>"
 Enable the boot partition for the <device>.
 Disable the boot partition for the <device> with <boot_partition> set to 0.

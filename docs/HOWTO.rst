@@ -96,6 +96,24 @@ Running mmc-utils
             sysfs: /sys/devices/platform/fe320000.mmc/mmc_host/mmc1/mmc1:aaaa
             SCR Register: 0235800000000000
 
+    ``health <device>``
+        Print a health summary of the eMMC <device>: the background operations
+        status (eMMC >= 4.41), Pre EOL info and device life time estimates
+        (eMMC >= 5.0), each with a human readable decode of the raw field.
+        eMMC only; SD cards do not report health data.
+
+        Example::
+
+            $ mmc health /dev/mmcblk0
+            =============================================
+              eMMC Health Report: /dev/mmcblk0
+            =============================================
+            Extended CSD rev: 1.8 (MMC 5.1)
+            BKOPS status:     0x00 [No background operation required]
+            Pre EOL info:     0x01 [Normal]
+            Life time type A: 0x01 [0%-10% of device life time used]
+            Life time type B: 0x01 [0%-10% of device life time used]
+
     ``list``
         List all MMC/SD devices present on the system. Output is a table with
         columns: DEVICE (sysfs name), DEV (/dev path), TYPE (MMC or SD),

@@ -106,6 +106,12 @@ static struct Command commands[] = {
 	  "status get", "<device>\n"
 	  "Print the response to STATUS_SEND (CMD13).",
 	},
+	{ do_health, -1,
+	  "health", "<device>\n"
+	  "Print a health summary of the eMMC <device>: BKOPS status\n"
+	  "(eMMC >= 4.41), Pre EOL info and device life time estimates\n"
+	  "(eMMC >= 5.0). eMMC only, SD cards do not report health data.",
+	},
 	{ do_write_boot_en, -3,
 	  "bootpart enable", "<boot_partition> " "<send_ack> " "<device>\n"
 		"Enable the boot partition for the <device>.\nDisable the boot partition for the <device> if <boot_partition> is set to 0.\nTo receive acknowledgment of boot from the card set <send_ack>\nto 1, else set it to 0.",
