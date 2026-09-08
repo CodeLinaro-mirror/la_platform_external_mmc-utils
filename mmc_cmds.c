@@ -982,6 +982,31 @@ out_free:
 	return ret;
 }
 
+static const char *extcsd_rev_to_string(__u8 rev)
+{
+	switch (rev) {
+	case 9:
+	case 8:
+		return "5.1";
+	case 7:
+		return "5.0";
+	case 6:
+		return "4.5";
+	case 5:
+		return "4.41";
+	case 3:
+		return "4.3";
+	case 2:
+		return "4.2";
+	case 1:
+		return "4.1";
+	case 0:
+		return "4.0";
+	default:
+		return NULL;
+	}
+}
+
 static unsigned int get_sector_count(__u8 *ext_csd)
 {
 	return (ext_csd[EXT_CSD_SEC_COUNT_3] << 24) |
@@ -1527,35 +1552,10 @@ int do_read_extcsd(int nargs, char **argv)
 
 	ext_csd_rev = ext_csd[EXT_CSD_REV];
 
-	switch (ext_csd_rev) {
-	case 9:
-	case 8:
-		str = "5.1";
-		break;
-	case 7:
-		str = "5.0";
-		break;
-	case 6:
-		str = "4.5";
-		break;
-	case 5:
-		str = "4.41";
-		break;
-	case 3:
-		str = "4.3";
-		break;
-	case 2:
-		str = "4.2";
-		break;
-	case 1:
-		str = "4.1";
-		break;
-	case 0:
-		str = "4.0";
-		break;
-	default:
-		goto out_free;
-	}
+	str = extcsd_rev_to_string(ext_csd_rev);
+	if (!str)
+		goto out_free; /* Unknown revision */
+
 	printf("=============================================\n");
 	printf("  Extended CSD rev 1.%d (MMC %s)\n", ext_csd_rev, str);
 	printf("=============================================\n\n");
